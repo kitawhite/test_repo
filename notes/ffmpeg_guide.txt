@@ -1,0 +1,29 @@
+
+
+
+input → demux → decode → filter → encode → mux
+
+
+
+General guideline for when splitting a file into its consitituents.
+
+   ffprobe  →  note codec_name for each stream you're keeping
+        │
+        ▼
+   Do you need to CHANGE the encoding (the codec)?
+        │
+    ┌───┴────┐
+   NO         YES
+    │           │
+    ▼           ▼
+ -c copy     re-encode  (just omit -c copy)
+    │           │
+    ▼           ▼
+ Pick an     Pick the extension for the format
+ extension   you WANT. ffmpeg auto-selects a
+ whose box   codec that fits that box (or you
+ ACCEPTS     name one with -c:v / -c:a).
+ that codec
+
+If there is a ned to change the encoding then yeah just leave out -c copy.
+

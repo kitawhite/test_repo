@@ -1,0 +1,10 @@
+
+If you want to trim stuff with the command line ffmpeg,
+
+ffmpeg -ss [start] -i input.mp4 -t [duration] -c copy out.mp4
+
+>> -ss [start] marks the starting time. [start] can be either hh:mm:ss.xxx where the final decimal place is the milisecond. You can also mark the thing in seconds.
+>> -t [duration] specifies how long the output file should be in the same format as in the above.
+
+Example: ffmpeg -ss 00:03:47.031 -i input -t 00:01:21:189 -c copy out.mp4
+

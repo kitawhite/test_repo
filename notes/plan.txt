@@ -1,0 +1,39 @@
+Video generation based around Areas Of Interest (AOI)
+
+1. Feed video into the software.
+
+2. Use opencv to analyze the top right hand corner where the kda is displayed. If the kill count increases, then mark those as areas of interest as well.
+
+3. Use ffmpeg to scour the audio waveform around the marked areas of interest. Starting at the mark, move backwards from AOI to find the smallest amplitude in the waveform (indicates that action hasn't happened).
+    Move forward from AOI to a certain number of seconds (user can define) to mark the end of the "clip"
+
+    The "clip is as follows": clip --------------A--------B---C--------- where A represents the smallest amplitude in the waveform, B represents the AOI and C represents the end of the "clip".
+
+4. Merging. If it happens that there is a clip's point A that is within the confines of another clip, the two clips will be merged.
+
+    ------A----B-------C--------------------   <-+
+    ------A---------B-------C---------------   <-+ Merge these two clips
+
+5. User can choose to add background music and sound effects.
+
+
+
+With cv2 and VLM and ffmpeg
+
+1. cv2 walk down the video, GENEROUSLY flag down every frame that the KDA changes. RECORD THIS IN SECONDS so that ffmpeg doesnt die later. Pass this settled frame and if the video doesn't end, 5 frames after this frame to VLM
+2. VLM only reads. Ask the VLM for a json of {kills, deaths, assists} for every picture, take the mode {kills, deaths, assists} and use that to confirm if it has changed or not.
+3. Code will take the returned output from the VLM and if {kills, deaths, assists} is the same as before, then ignore. Else, label the frame that cv2 marked. 
+    (Potential issue where cv2 flags a frame where the KDA changes due to a KDA-external cause like flashes or animations not caused by KDA changing and the KDA changes during the next 5 grace frames. But probably not
+    noticeable because in reality 5 frames is like nothing bruh)
+4. ffmpeg cutg and concat. Easy to do since cv returned the settled frame in seconds.
+
+With cv2 and VLM and ffmpeg (UPDATED)
+
+1. cv2 walk down the video, GENEROUSLY flag down every frame that the KDA changes. RECORD THIS IN SECONDS so that ffmpeg doesnt die later. Pass this settled frame to VLM
+2. VLM only reads PICTURES. Ask the VLM for a json of {kills, deaths, assists} for every picture, take the mode {kills, deaths, assists} and use that to confirm if it has changed or not.
+3. Code will take the returned output from the VLM and if {kills, deaths, assists} is the same as before, then ignore. Else, label the frame that cv2 marked. 
+4. ffmpeg cutg and concat. Easy to do since cv returned the settled frame in seconds.
+
+
+
+v2 idea: Make a sort of GUI interface such that the user is able to select where they want the viewer to be at.

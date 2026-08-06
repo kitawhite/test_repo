@@ -1,0 +1,13 @@
+
+I asked claude about zooming for vids.
+
+Like wtf is this lol
+ffmpeg -i 3out.mp4 -vf "zoompan=z='min(1+0.5*on/778,1.5)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=4784x2160:fps=30" -c:a copy -pix_fmt yuv420p zoomed.mp4
+
+Here is how to work with FILTERS in ffmpeg. This thing goes into the "" marks.
+
+name = key = value : key = value : key = value
+  │      └──────────────── options ──────────────┘
+  └─ filter name
+
+  This is the grammer for ALL FILTERS in ffmpeg
