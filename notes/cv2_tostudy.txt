@@ -1,39 +1,21 @@
 
-import cv2
-import sys
-import numpy as np
+What frame is in here:
 
-from ollama import chat
+    def crop(frame, box):
+        h, w = frame.shape[:2]
+        x0, y0, x1, y1 = box
+        return frame[int(y0*h):int(y1*h), int(x0*w):int(x1*w)]
 
-
-# grab is cheap
-# 
-
-def crop(frame, box):
-    h, w = frame.shape[:2]
-    x0, y0, x1, y1 = box
-    return frame[int(y0*h):int(y1*h), int(x0*w):int(x1*w)]
-
-def signature(frame, box):
-    _crop = crop(frame, box)
-
-    # tbr
-    print(VLM(_crop))
-    
-    grey = cv2.cvtColor(_crop, cv2.COLOR_BGR2GRAY)   # color doesn't matter for digits
-    return cv2.resize(grey, (16, 16))               # shrink hard -> kills noise, keeps shape
-
-def changed(a, b, tol=12):
-    return cv2.absdiff(a, b).mean() > tol           # mean pixel difference, 0..255
+cv2.cvtColor(_crop, cv2.COLOR_BGR2GRAY)
+cv2.resize(grey, (16, 16))  
+cv2.VideoCapture(path)
+cap.grab() -- cap = cv2.VideoCapture
 
 
 
-# sample_ms is the period between jumps.
-# debounce_ms is the min period between two clips
-def find_changes(path, box, sample_ms=120, debounce_ms=400):
-    cap = cv2.VideoCapture(path)
-    if not cap.isOpened():
-        raise SystemExit(f"Could not open {path}")
+
+
+
 
     prev, marks, next_at, last_mark = None, [], 0.0, -1e9 
     while True:
@@ -61,24 +43,36 @@ def find_changes(path, box, sample_ms=120, debounce_ms=400):
     return marks
 
 
+# Current plan is to take the timestamp array and extract the frames in the right scaled size using ffmpeg and ask gemma to return an array.
 def VLM(decoded_frame_image):
+
     ok, encoded_png_in_memory = cv2.imencode('.png', decoded_frame_image)
     if not ok:
-        raise RuntimeError("Cannot encode frame into PNG")
+        raise RuntimeError("Cannot encode frame data into png data into memory")
+
     png_bytes = encoded_png_in_memory.tobytes()
-    h = cv2.imwrite('debug_crop.png', decoded_frame_image) 
+
+    # You can also pass in base64 encoded image data
+    # img = base64.b64encode(Path(path).read_bytes()).decode()
+    # or the raw bytes
+    # img = Path(path).read_bytes()
 
     response = chat(
-        model='gemma4',
-        messages=[
-            {
-                'role': 'user',
-                'content': 'Describe what is in this image, be concise',  # STRING
-                'images': ['debug_crop.png'],   # sibling key, one bytes object per image
-            }
+    model='gemma4',
+    messages=[
+        {
+        'role': 'user',
+        'content': [
+            {'type': 'image', 'bytes': [png_bytes]},
+            {'type': 'text', 'text': 'Describe what is in this image, be concise'}
         ],
+        }
+    ],
     )
-    return response.message.content   
+
+    #  print(response)
+    #  print(response.message)
+    return response.message.content     
 
 
 
