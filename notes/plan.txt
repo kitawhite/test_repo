@@ -39,3 +39,7 @@ With cv2 and VLM and ffmpeg (UPDATED)
 v2 idea: Make a sort of GUI interface such that the user is able to select where they want the viewer to be at.
 
 
+cap = VideoCapture()
+cap.red() --> gets frame from vid, decodes it from its original png jpg encoded fformat and returns it in raw pixel array
+cv.imencode() --> reencode in whatever png or jpg format
+base64.b64encode() to encode in b64

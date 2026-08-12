@@ -2,6 +2,7 @@
 import cv2
 import sys
 import numpy as np
+import base64
 
 from ollama import chat
 
@@ -44,7 +45,7 @@ def find_changes(path, box, sample_ms=120, debounce_ms=400):
             continue
         next_at = t + sample_ms
 
-        ok, frame = cap.retrieve()           # decode ONLY this sampled frame
+        ok, frame = cap.retrieve()           # retrieve takes the decoded frame, decodes it, moves to the next frame.
         if not ok:
             break
 
@@ -65,19 +66,21 @@ def VLM(decoded_frame_image):
     ok, encoded_png_in_memory = cv2.imencode('.png', decoded_frame_image)
     if not ok:
         raise RuntimeError("Cannot encode frame into PNG")
-    png_bytes = encoded_png_in_memory.tobytes()
-    h = cv2.imwrite('debug_crop.png', decoded_frame_image) 
+
+    # b64_img = base64.b64encode(encoded_png_in_memory)
+    b64_img = base64.b64encode(encoded_png_in_memory.tobytes()).decode("utf-8")
 
     response = chat(
-        model='gemma4',
+        model='qwen3.5',
         messages=[
             {
-                'role': 'user',
-                'content': 'Describe what is in this image, be concise',  # STRING
-                'images': ['debug_crop.png'],   # sibling key, one bytes object per image
+            'role': 'user',
+            'content': 'What is in this image? Be concise.',
+            'images': [b64_img],
             }
         ],
     )
+
     return response.message.content   
 
 
